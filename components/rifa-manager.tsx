@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { Loader2, Trash2, Edit2, Search, LogOut } from 'lucide-react'
+import { Loader2, Trash2, Edit2, Search, LogOut, Plus, Ticket } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface RifaNumber {
@@ -28,7 +29,6 @@ export function RifaManager() {
   const [editNumber, setEditNumber] = useState('')
   const [editDescription, setEditDescription] = useState('')
 
-  // Cargar números al montar el componente
   useEffect(() => {
     loadRifas()
   }, [])
@@ -119,7 +119,7 @@ export function RifaManager() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este número?')) {
+    if (!confirm('¿Eliminar este número de rifa?')) {
       return
     }
 
@@ -192,165 +192,226 @@ export function RifaManager() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="mx-auto max-w-4xl space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Sistema de Rifa</h1>
-            <p className="text-slate-600">Gestiona tus números de rifa fácilmente</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-gradient-to-br from-accent to-accent/60 p-2">
+              <Ticket className="h-6 w-6 text-accent-foreground" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Rifa Manager</h1>
+              <p className="text-xs text-muted-foreground">Sistema de gestión</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Cerrar sesión
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Cerrar sesión</span>
           </Button>
         </div>
+      </header>
 
-        {/* Agregar número */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Agregar Nuevo Número</CardTitle>
-            <CardDescription>Registra un nuevo número de rifa</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAddRifa} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="number">Número</Label>
-                  <Input
-                    id="number"
-                    type="text"
-                    placeholder="Ej: RIF-001"
-                    value={newNumber}
-                    onChange={(e) => setNewNumber(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="desc">Descripción (opcional)</Label>
-                  <Input
-                    id="desc"
-                    type="text"
-                    placeholder="Ej: premio especial"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Agregar Número
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Búsqueda */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Buscar Números</CardTitle>
-            <CardDescription>Busca números de rifa por número</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Buscar número..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                disabled={isSearching}
-              />
-              <Button type="submit" disabled={isSearching}>
-                {isSearching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Search className="h-4 w-4" />
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Lista de números */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Números Registrados</CardTitle>
-            <CardDescription>Total: {rifas.length} números</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-              </div>
-            ) : rifas.length === 0 ? (
-              <p className="text-center py-8 text-slate-500">No hay números registrados</p>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {rifas.map((rifa) => (
-                  <div
-                    key={rifa.id}
-                    className="flex items-center justify-between rounded-lg bg-slate-50 p-4 hover:bg-slate-100 transition"
-                  >
-                    {editingId === rifa.id ? (
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          value={editNumber}
-                          onChange={(e) => setEditNumber(e.target.value)}
-                          placeholder="Número"
-                        />
-                        <Input
-                          value={editDescription}
-                          onChange={(e) => setEditDescription(e.target.value)}
-                          placeholder="Descripción (opcional)"
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={handleEditSave}>
-                            Guardar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingId(null)}
-                          >
-                            Cancelar
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-900">{rifa.number}</p>
-                          {rifa.description && (
-                            <p className="text-sm text-slate-600">{rifa.description}</p>
-                          )}
-                          <p className="text-xs text-slate-500">
-                            {new Date(rifa.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditStart(rifa)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(rifa.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
+      {/* Main Content */}
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left Column - Form */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Agregar número */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plus className="h-5 w-5 text-accent" />
+                  Agregar Número
+                </CardTitle>
+                <CardDescription>Registra un nuevo número de rifa</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAddRifa} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="number" className="text-sm font-medium">
+                      Número
+                    </Label>
+                    <Input
+                      id="number"
+                      type="text"
+                      placeholder="RIF-001"
+                      value={newNumber}
+                      onChange={(e) => setNewNumber(e.target.value)}
+                      disabled={isLoading}
+                      required
+                      className="bg-background border-border"
+                    />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="desc" className="text-sm font-medium">
+                      Descripción <span className="text-muted-foreground">(opcional)</span>
+                    </Label>
+                    <Input
+                      id="desc"
+                      type="text"
+                      placeholder="Premio especial"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      disabled={isLoading}
+                      className="bg-background border-border"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Agregar
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Búsqueda */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Search className="h-5 w-5 text-accent" />
+                  Buscar
+                </CardTitle>
+                <CardDescription>Busca por número</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSearch} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Buscar..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    disabled={isSearching}
+                    className="flex-1 bg-background border-border"
+                  />
+                  <Button type="submit" disabled={isSearching} size="icon" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    {isSearching ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Stats */}
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-accent/10 to-accent/5">
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Total de números</p>
+                  <p className="text-3xl font-bold text-foreground">{rifas.length}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - List */}
+          <div className="lg:col-span-2">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Números Registrados</CardTitle>
+                <CardDescription>
+                  {rifas.length} {rifas.length === 1 ? 'número' : 'números'} en total
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-accent" />
+                  </div>
+                ) : rifas.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Ticket className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-muted-foreground">No hay números registrados</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                    {rifas.map((rifa) => (
+                      <div
+                        key={rifa.id}
+                        className="rounded-lg border border-border bg-card/50 p-4 hover:bg-card/80 transition-colors"
+                      >
+                        {editingId === rifa.id ? (
+                          <div className="space-y-3">
+                            <Input
+                              value={editNumber}
+                              onChange={(e) => setEditNumber(e.target.value)}
+                              placeholder="Número"
+                              className="bg-background border-border"
+                            />
+                            <Input
+                              value={editDescription}
+                              onChange={(e) => setEditDescription(e.target.value)}
+                              placeholder="Descripción (opcional)"
+                              className="bg-background border-border"
+                            />
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                onClick={handleEditSave}
+                                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+                              >
+                                Guardar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingId(null)}
+                                className="flex-1"
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-foreground truncate">{rifa.number}</p>
+                              {rifa.description && (
+                                <p className="text-sm text-muted-foreground truncate">{rifa.description}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(rifa.createdAt).toLocaleDateString('es-ES')}
+                              </p>
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => handleEditStart(rifa)}
+                                className="h-8 w-8 border-border"
+                              >
+                                <Edit2 className="h-4 w-4 text-accent" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => handleDelete(rifa.id)}
+                                className="h-8 w-8 border-border hover:border-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
