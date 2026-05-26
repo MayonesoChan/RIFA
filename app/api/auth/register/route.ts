@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getUser, getPool } from '@/lib/db'
 import { hashPassword, createToken, setAuthCookie } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -15,9 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const existingUser = await getUser(email)
 
     if (existingUser) {
       return NextResponse.json(
@@ -28,18 +26,18 @@ export async function POST(request: NextRequest) {
 
     // Hashear contraseña y crear usuario
     const hashedPassword = await hashPassword(password)
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-    })
+    const pool = getPool()
+    const [result] = await pool.execute(
+      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      [name, email, hashedPassword, 'user']
+    )
+    const insertResult = result as any
+    const userId = insertResult.insertId
 
-    const token = await createToken(user.id, user.email)
+    const token = await createToken(userId, email)
 
     const response = NextResponse.json(
-      { message: 'Usuario registrado exitosamente', userId: user.id },
+      { message: 'Usuario registrado exitosamente', userId },
       { status: 201 }
     )
 

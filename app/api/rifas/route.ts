@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getUserRifas, createRifa, getPool } from '@/lib/db'
 import { getAuthToken, verifyToken } from '@/lib/auth'
 
 // GET - Listar todos los números de rifa del usuario
@@ -21,17 +21,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const rifas = await prisma.rifa.findMany({
-      where: { userId: decoded.userId as number },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        numero: true,
-        descripcion: true,
-        estado: true,
-        createdAt: true,
-      },
-    })
+    const rifas = await getUserRifas(decoded.userId as number)
 
     return NextResponse.json(rifas, { status: 200 })
   } catch (error) {
@@ -73,26 +63,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si el número ya existe para este usuario
-    const existing = await prisma.rifa.findFirst({
-      where: {
-        userId: decoded.userId as number,
-        numero,
-      },
-    })
+    const pool = getPool()
+    const [existing] = await pool.execute(
+      'SELECT id FROM rifas WHERE user_id = ? AND numero = ?',
+      [decoded.userId as number, numero]
+    )
+    const existingRifas = existing as any[]
 
-    if (existing) {
+    if (existingRifas.length > 0) {
       return NextResponse.json(
         { error: 'Este número ya existe' },
         { status: 400 }
       )
     }
 
-    const rifa = await prisma.rifa.create({
-      data: {
-        numero,
-        descripcion: descripcion || null,
-        userId: decoded.userId as number,
-      },
+    const rifa = await createRifa({
+      userId: decoded.userId as number,
+      numero,
+      descripcion,
     })
 
     return NextResponse.json(

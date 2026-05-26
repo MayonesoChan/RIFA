@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { searchRifas } from '@/lib/db'
 import { getAuthToken, verifyToken } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -30,15 +30,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const results = await prisma.rifa.findMany({
-      where: {
-        userId: decoded.userId as number,
-        numero: {
-          contains: query,
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+    const results = await searchRifas(query, decoded.userId as number)
 
     return NextResponse.json(results, { status: 200 })
   } catch (error) {

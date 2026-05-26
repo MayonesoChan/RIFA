@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getRifaById, updateRifa, deleteRifa } from '@/lib/db'
 import { getAuthToken, verifyToken } from '@/lib/auth'
 
 // PUT - Actualizar número de rifa
@@ -30,24 +30,19 @@ export async function PUT(
     const { numero, descripcion, estado } = body
 
     // Verificar que el registro pertenece al usuario
-    const rifa = await prisma.rifa.findUnique({
-      where: { id: parseInt(id) },
-    })
+    const rifa = await getRifaById(parseInt(id))
 
-    if (!rifa || rifa.userId !== decoded.userId) {
+    if (!rifa || rifa.user_id !== decoded.userId) {
       return NextResponse.json(
         { error: 'No tienes permiso para actualizar este registro' },
         { status: 403 }
       )
     }
 
-    await prisma.rifa.update({
-      where: { id: parseInt(id) },
-      data: {
-        numero,
-        descripcion: descripcion || null,
-        estado: estado || rifa.estado,
-      },
+    await updateRifa(parseInt(id), {
+      numero,
+      descripcion,
+      estado,
     })
 
     return NextResponse.json(
@@ -88,20 +83,16 @@ export async function DELETE(
     }
 
     // Verificar que el registro pertenece al usuario
-    const rifa = await prisma.rifa.findUnique({
-      where: { id: parseInt(id) },
-    })
+    const rifa = await getRifaById(parseInt(id))
 
-    if (!rifa || rifa.userId !== decoded.userId) {
+    if (!rifa || rifa.user_id !== decoded.userId) {
       return NextResponse.json(
         { error: 'No tienes permiso para eliminar este registro' },
         { status: 403 }
       )
     }
 
-    await prisma.rifa.delete({
-      where: { id: parseInt(id) },
-    })
+    await deleteRifa(parseInt(id))
 
     return NextResponse.json(
       { message: 'Número de rifa eliminado' },

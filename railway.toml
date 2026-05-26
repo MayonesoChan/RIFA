@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "node scripts/migrate.js && npm start"
+restartPolicyMaxRetries = 5
+healthcheckPath = "/"
+healthcheckTimeout = 10
