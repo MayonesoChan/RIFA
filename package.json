@@ -6,10 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
-    "migrate": "node scripts/migrate.js",
-    "migrate:dev": "prisma migrate dev",
-    "db:push": "prisma db push"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
